@@ -1,3 +1,3 @@
 # Themed Entertianment Assiosation - Animatronic Project
 
-Fill in project description.
+Someone please fill this in.
