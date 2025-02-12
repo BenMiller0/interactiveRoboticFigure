@@ -1,3 +1,10 @@
+// Joystick test script 
+
+// baseServo/SERVO_PIN_0 <- y0Pin/A0 | controls base of figure rotation
+// headServo/SERVO_PIN_1 <- y1Pin/A1 | controls head rotation
+
+
+
 #include <Servo.h>
 #include <EEPROM.h>  
 
@@ -50,5 +57,5 @@ void loop() {
   EEPROM.update(0, currentrot0);
   EEPROM.update(1, currentrot1);
 
-  delay(5);  // Small delay to smooth movement
+  delay(5);  // Small delay for smoother movement
 }
