@@ -19,20 +19,20 @@ void setup() {
 }
 
 void loop() {
-  int xValue = analogRead(yPin);  // Read joystick/sensor
+  int yValue = analogRead(yPin);  // Read joystick/sensor
 
-  // Optional: Add a dead zone to avoid jitter around the center
-  if (xValue > 512 + 50) {       
+  // Update current rotatrot value based on 
+  if (yValue > 512 + 50) {       
     if (!(currentrot > MAX_ANGLE)) {
       currentrot++;
     }
-  } else if (xValue < 512 - 50) { 
+  } else if (yValue < 512 - 50) { 
     if (!(currentrot < MIN_ANGLE)) {
       --currentrot;
     }
   }
 
-
+  // Move the servo to the currentrot value
   head.write(currentrot);
   delay(5);  // Small delay to smooth out movement
 }
