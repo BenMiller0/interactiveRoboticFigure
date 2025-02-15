@@ -19,16 +19,10 @@ unsigned long debounceDelay = 50;
 void setup() {
   wing.attach(SERVOS);
   wing.write(FRONT);
-  delay(1000);
-
-  moveServoWithProfile(wing, FRONT, RIGHT); // Move dynamically to RIGHT
-  delay(100);
   moveServoWithProfile(wing, RIGHT, FRONT); // Move dynamically to FRONT
 
   pinMode(BUTTON, INPUT); // Initialization sensor pin
   digitalWrite(BUTTON, HIGH); // Activation of internal pull-up resistor
-  Serial.begin(9600); // Initialization of the serial monitor
-  Serial.println("KY-004 Button test");
 }
 
 void loop() {
