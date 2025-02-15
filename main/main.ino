@@ -35,22 +35,25 @@ void loop() {
 
   // -- START --
   // DRIVES JOYSTICKS TO CONTROLL BASE AND HEAD SERVO 
+  int ROTBASESPEED = 3; // Speed of base rotation
+  int ROTHEADSPEED = 3; // Speed of base rotation
+
   int y0Value = analogRead(y0Pin);  // Read joystick for base
   int y1Value = analogRead(y1Pin);  // Read joystick for head
   // Dead zone to prevent jitter
   if (y0Value > 562 && currentrot0 < MAX_ANGLE) {       
-    currentrot0 += 3; // Instant fast movement
+    currentrot0 += ROTBASESPEED; // Instant fast movement
     currentrot0 = min(currentrot0, MAX_ANGLE);
   } else if (y0Value < 462 && currentrot0 > MIN_ANGLE) { 
-    currentrot0 -= 3;
+    currentrot0 -= ROTBASESPEED;
     currentrot0 = max(currentrot0, MIN_ANGLE);
   }
 
   if (y1Value > 562 && currentrot1 < MAX_ANGLE) {       
-    currentrot1 += 3;
+    currentrot1 += ROTHEADSPEED;
     currentrot1 = min(currentrot1, MAX_ANGLE);
   } else if (y1Value < 462 && currentrot1 > MIN_ANGLE) { 
-    currentrot1 -= 3;
+    currentrot1 -= ROTHEADSPEED;
     currentrot1 = max(currentrot1, MIN_ANGLE);
   }
 
@@ -64,7 +67,7 @@ void loop() {
   // -- END --
 
   // -- START --
-  // Drives button and wing servos
+  // DRIVES BUTTON AND WING SERVOS
 
 
   // -- END --
