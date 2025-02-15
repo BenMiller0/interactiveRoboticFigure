@@ -1,9 +1,4 @@
-// Joystick test script 
-
-// baseServo/SERVO_PIN_0 <- y0Pin/A0 | controls base of figure rotation
-// headServo/SERVO_PIN_1 <- y1Pin/A1 | controls head rotation
-
-
+// Joystick test script with instant movement
 
 #include <Servo.h>
 #include <EEPROM.h>  
@@ -27,35 +22,36 @@ void setup() {
   baseServo.attach(SERVO_PIN_0);
   headServo.attach(SERVO_PIN_1);
 
-  // Move servos to their last known positions
   baseServo.write(currentrot0);
   headServo.write(currentrot1);
 }
 
 void loop() {
-  int y0Value = analogRead(y0Pin);  // Read joystick/sensor for base
-  int y1Value = analogRead(y1Pin);  // Read joystick/sensor for head
+  int y0Value = analogRead(y0Pin);  // Read joystick for base
+  int y1Value = analogRead(y1Pin);  // Read joystick for head
 
-  // Dead zone to prevent jitter (adjust 50 if needed)
+  // Dead zone to prevent jitter
   if (y0Value > 562 && currentrot0 < MAX_ANGLE) {       
-    ++currentrot0;
+    currentrot0 += 3; // Instant fast movement
+    currentrot0 = min(currentrot0, MAX_ANGLE);
   } else if (y0Value < 462 && currentrot0 > MIN_ANGLE) { 
-    --currentrot0;
+    currentrot0 -= 3;
+    currentrot0 = max(currentrot0, MIN_ANGLE);
   }
 
   if (y1Value > 562 && currentrot1 < MAX_ANGLE) {       
-    ++currentrot1;
+    currentrot1 += 3;
+    currentrot1 = min(currentrot1, MAX_ANGLE);
   } else if (y1Value < 462 && currentrot1 > MIN_ANGLE) { 
-    --currentrot1;
+    currentrot1 -= 3;
+    currentrot1 = max(currentrot1, MIN_ANGLE);
   }
 
-  // Move servos to updated positions
   baseServo.write(currentrot0);
   headServo.write(currentrot1);
 
-  // Save positions to EEPROM only if they changed
   EEPROM.update(0, currentrot0);
   EEPROM.update(1, currentrot1);
 
-  delay(5);  // Small delay for smoother movement
+  delay(10); // Small delay for smoother motion
 }
