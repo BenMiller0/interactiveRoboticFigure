@@ -35,8 +35,8 @@ void loop() {
 
   // -- START --
   // DRIVES JOYSTICKS TO CONTROLL BASE AND HEAD SERVO 
-  int ROTBASESPEED = 3; // Speed of base rotation
-  int ROTHEADSPEED = 3; // Speed of base rotation
+  int ROTBASESPEED = 1; // Speed of base rotation
+  int ROTHEADSPEED = 1; // Speed of base rotation
 
   int y0Value = analogRead(y0Pin);  // Read joystick for base
   int y1Value = analogRead(y1Pin);  // Read joystick for head
