@@ -91,9 +91,7 @@ void loop() {
     unsigned long currentTime = millis();
 
     if (currentTime - lastDebounceTime > debounceDelay) {
-      moveServoWithProfile(wing, FRONT, RIGHT); // Move dynamically to RIGHT
-      delay(100);
-      moveServoWithProfile(wing, RIGHT, FRONT); // Move dynamically to FRONT
+      flapWings(0.8);
 
       // Update the last debounce time
       lastDebounceTime = currentTime;
@@ -103,6 +101,15 @@ void loop() {
   // -- END --
 
 }
+
+
+void flapWings(int speed){
+  speedMultiplier = speed;
+  moveServoWithProfile(wing, FRONT, RIGHT); // Move dynamically to RIGHT
+  delay(100);
+  moveServoWithProfile(wing, RIGHT, FRONT); // Move dynamically to FRONT
+}
+
 
 void moveServoWithProfile(Servo &servo, int startPos, int endPos) {
   // Dynamic speed profile array
