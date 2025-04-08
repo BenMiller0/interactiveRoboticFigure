@@ -2,21 +2,6 @@
 
 This project, developed as part of the Themed Entertainment Association (TEA) at UCSD, focuses on designing and building an animatronic figure that enhances themed attractions through innovative storytelling and technology.
 
-## Project Leads & Members
-
-Project Leads:
-
-Benjamin Miller – Software Engineering Lead
-
-
-Team Members:
-
-[Member 1]
-
-[Member 2]
-
-[Member 3]
-
 
 ## Project Goals
 
