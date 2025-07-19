@@ -23,9 +23,11 @@ Hardware: Raspberry Pi 5, Arduino, servos, sensors
 
 Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding platform
 
-GradePredictionModel/
-├── data
-├── preprocess.py            # Converts history into input tensor
-├── model.py                 # Defines the PyTorch model
+├── Body                     # Aurdino Code that controls wings/head movements
+├── mouth                    # C code to run on RPI 5 that snycs audio signal with mouth 
+├── assets                   # Non-production related file directories
+    ├── testingScripts           # Proof of concept/test programs for refernce
+    ├── concept_art              # Concept art files
 
 ## Concept Art
+![Taro](./assets/concept_art/Taro.jpg)
