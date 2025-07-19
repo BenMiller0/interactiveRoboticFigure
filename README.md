@@ -23,11 +23,11 @@ Hardware: Raspberry Pi 5, Arduino, servos, sensors
 
 Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding platform
 
-├── Body                     # Aurdino Code that controls wings/head movements
-├── mouth                    # C code to run on RPI 5 that snycs audio signal with mouth 
-├── assets                   # Non-production related file directories
-    ├── testingScripts           # Proof of concept/test programs for refernce
-    ├── concept_art              # Concept art files
+├── Body                     # Aurdino Code that controls wings/head movements  
+├── mouth                    # C code to run on RPI 5 that snycs audio signal with mouth   
+├── assets                   # Non-production related file directories  
+&nbsp;&nbsp;&nbsp;&nbsp;├── testingScripts           # Proof of concept/test programs for refernce  
+&nbsp;&nbsp;&nbsp;&nbsp;├── concept_art              # Concept art files  
 
 ## Concept Art
 ![Taro](./assets/concept_art/Taro.jpg)
