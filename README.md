@@ -1,6 +1,8 @@
 # Project Overview
+Watch this robotic figure "Taro" in action: https://www.youtube.com/shorts/PKlPhNjFk18
 
 This project, developed as part of the Themed Entertainment Association (TEA) at UCSD, focuses on designing and building an animatronic figure that enhances themed attractions through innovative storytelling and technology.
+
 
 
 ## Project Goals
@@ -27,4 +29,4 @@ Hardware: Raspberry Pi 5, Arduino, servos, sensors
 
 Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding platform
 
-
+## Concept Art
