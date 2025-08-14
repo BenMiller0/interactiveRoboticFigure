@@ -26,8 +26,13 @@ Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding pla
 ├── Body                     # Aurdino Code that controls wings/head movements  
 ├── mouth                    # C code to run on RPI 5 that snycs audio signal with mouth   
 ├── assets                   # Non-production related file directories  
+<<<<<<< HEAD
     ├── testingScripts           # Proof of concept/test programs for refernce  
     ├── concept_art              # Concept art files  
+=======
+&nbsp;&nbsp;&nbsp;&nbsp;├── testingScripts           # Proof of concept/test programs for refernce  
+&nbsp;&nbsp;&nbsp;&nbsp;├── concept_art              # Concept art files  
+>>>>>>> b90a4a3af15b5bb1533e652bfb1ab644cedde564
 
 ## Concept Art
 ![Taro](./assets/concept_art/Taro.jpg)
