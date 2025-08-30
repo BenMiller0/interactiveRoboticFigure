@@ -33,5 +33,8 @@ Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding pla
 └── README.md           # What your currently reading!
 ```
 
+### Mouth code [taromouth.c] visualized
+![program_cycle.png](./assets/concept_art/program_cycle.png)
+
 ## Concept Art
 ![Taro](./assets/concept_art/Taro.jpg)
