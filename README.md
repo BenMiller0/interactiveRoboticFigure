@@ -3,18 +3,6 @@ Watch this robotic figure "Taro" in action: https://www.youtube.com/shorts/PKlPh
 
 This project, developed as part of the Themed Entertainment Association (TEA) at UCSD, focuses on designing and building an animatronic figure that enhances themed attractions through innovative storytelling and technology.
 
-
-
-## Project Goals
-
-The goal of this project is to design and implement an interactive animatronic character that integrates:
-
-Motion Control: Using servo motor actuators for lifelike movement.
-
-Audio Integration: Synchronizing mouth with real time audio input.
-
-Energy Efficiency & Durability: Ensuring sustainability and long-term reliability in a production setting.
-
 ## Documentation
 
 Technical Breakdown
