@@ -27,8 +27,8 @@ Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding pla
 ├── assets              # Non-production related files
 │   ├── concept_art     # Concept art for animatronic/robotic figure   
 │   └── testingScripts  # Testing scripts for different parts of the figure
-├── loudmouth.c         # C code that controls mouth movement on RPI 5
-├── main.ino            # Aurdino cod that drives the wings and head movements
+├── taromouth.c         # C code that controls mouth movement on RPI 5
+├── body.ino            # Aurdino cod that drives the wings and head movements
 ├── Makefile            # Compiles the C file 
 └── README.md           # What your currently reading!
 ```
