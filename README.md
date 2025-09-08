@@ -4,7 +4,6 @@ Watch this robotic figure "Taro" in action: https://www.youtube.com/shorts/PKlPh
 This project, developed as part of the Themed Entertainment Association (TEA) at UCSD, focuses on designing and building an animatronic figure that enhances themed attractions through innovative storytelling and technology.
 
 
-
 ## Project Goals
 
 The goal of this project is to design and implement an interactive animatronic character that integrates:
@@ -14,6 +13,7 @@ Motion Control: Using servo motor actuators for lifelike movement.
 Audio Integration: Synchronizing mouth with real time audio input.
 
 Energy Efficiency & Durability: Ensuring sustainability and long-term reliability in a production setting.
+
 
 ## Documentation
 
@@ -33,8 +33,18 @@ Software: Advanced Linux Sound Archiecture, Basic C librarys, Aurdino coding pla
 └── README.md           # What your currently reading!
 ```
 
-### Mouth code [taromouth.c] visualized
+
+### Mouth code (taromouth.c)
+This code was adapted from [Project Loud Mouth](https://github.com/air-wickvu/cse147-loudmouth) developed for CSE 147 at UC San Diego.  
+
+One program cycle of the mouth code:
 ![program_cycle.png](./assets/concept_art/program_cycle.png)
+
+[See the full slides here](https://docs.google.com/presentation/d/1M71xk-SXskKZjQ1yYdlPH7T9tcfb5y1sOHmCM92CMGk/edit?usp=sharing)
+
+
+## Body Code (body.ino)
+Aurdino code that drives the wing flags and head rotation.
 
 ## Concept Art
 ![Taro](./assets/concept_art/Taro.jpg)
