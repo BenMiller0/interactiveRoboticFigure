@@ -129,6 +129,7 @@ int main() {
         // Sweep forward
         for (int angle = 0; angle <= 180; angle += 10) {
             pwm.setServoAngle(0, angle);
+            pwm.setServoAngle(1, angle);
             std::cout << "Angle: " << angle << "°" << std::endl;
             usleep(500000); // 500ms
         }
@@ -138,6 +139,7 @@ int main() {
         // Sweep backward
         for (int angle = 180; angle >= 0; angle -= 10) {
             pwm.setServoAngle(0, angle);
+            pwm.setServoAngle(1, angle);
             std::cout << "Angle: " << angle << "°" << std::endl;
             usleep(500000);
         }
