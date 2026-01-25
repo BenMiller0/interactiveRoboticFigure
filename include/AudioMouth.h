@@ -40,6 +40,7 @@ private:
 public:
     AudioMouth(PCA9685* pwmController, uint8_t servoChannel);
     ~AudioMouth();
+    int getServoPulse() {return prevServoPulse;}
 
     void start();
     void stop();

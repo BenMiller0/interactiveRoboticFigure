@@ -5,11 +5,22 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <sstream>
 
-// Function to set terminal to non-blocking mode
+#define CLEAR "\033[2J\033[H"
+#define HIDE_CURSOR "\033[?25l"
+#define SHOW_CURSOR "\033[?25h"
+#define CYAN "\033[36m"
+#define GREEN "\033[32m"
+#define RED "\033[31m"
+#define YELLOW "\033[33m"
+#define MAGENTA "\033[35m"
+#define RESET "\033[0m"
+#define BOLD "\033[1m"
+#define DIM "\033[2m"
+
 void setNonBlockingInput(bool enable) {
     static struct termios oldt, newt;
-    
     if (enable) {
         tcgetattr(STDIN_FILENO, &oldt);
         newt = oldt;
@@ -22,45 +33,99 @@ void setNonBlockingInput(bool enable) {
     }
 }
 
-// Get current time in milliseconds
 long long getCurrentTimeMs() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (long long)(tv.tv_sec) * 1000 + (long long)(tv.tv_usec) / 1000;
 }
 
-// Single wing flap
 void flapWings(PCA9685& pwm) {
-    std::cout << "Flap!" << std::endl;
+    pwm.setServoAngle(0, 240);
+    pwm.setServoAngle(1, -60);
+    usleep(500000);
+    pwm.setServoAngle(0, 60);
+    pwm.setServoAngle(1, 120);
+}
+
+std::string getBar(uint16_t pulse, uint16_t min, uint16_t max, int width = 20) {
+    int pos = ((pulse - min) * width) / (max - min);
+    if (pos < 0) pos = 0;
+    if (pos > width) pos = width;
     
-    const float UP_ANGLE = 240;
-    const float DOWN_ANGLE = 60;
-    const int MOVE_DELAY = 500000; // 500ms
+    std::string bar = "";
+    for (int i = 0; i < width; i++) {
+        if (i == pos) bar += "█";
+        else if (i == width/2) bar += "┼";
+        else bar += "─";
+    }
+    return bar;
+}
+
+std::string getMouthVisual(uint16_t pulse) {
+    // Map pulse (typically 1000-2000) to mouth opening
+    int opening = ((pulse - 1000) * 5) / 1000;
+    if (opening < 0) opening = 0;
+    if (opening > 5) opening = 5;
     
-    // Wings up
-    pwm.setServoAngle(0, UP_ANGLE);
-    pwm.setServoAngle(1, 180 - UP_ANGLE);
-    usleep(MOVE_DELAY);
+    switch(opening) {
+        case 0: return "  ─────  ";
+        case 1: return " ╱     ╲ ";
+        case 2: return "╱       ╲";
+        case 3: return "│       │";
+        case 4: return "│ ︵   ︵ │";
+        case 5: return "╲ ◡   ◡ ╱";
+        default: return "  ─────  ";
+    }
+}
+
+void draw(uint16_t head, uint16_t mouth, long long lastFlap, std::ostringstream& buf) {
+    buf.str("");
+    buf << "\033[H";
     
-    // Wings down
-    pwm.setServoAngle(0, DOWN_ANGLE);
-    pwm.setServoAngle(1, 180 - DOWN_ANGLE);
+    buf << BOLD CYAN "╔════════════════════════════╗\n";
+    buf << "║   🦅 Taro Controller 🦅    ║\n";
+    buf << "╚════════════════════════════╝\n" RESET;
+    
+    // Wing status with visual indicator
+    long long ms = getCurrentTimeMs() - lastFlap;
+    int pct = (ms * 100) / 2000;
+    if (pct > 100) pct = 100;
+    
+    buf << "\n " BOLD "WINGS" RESET "  ";
+    if (pct >= 100) {
+        buf << GREEN "✓ Ready      " RESET;
+    } else {
+        int bars = pct / 10;
+        buf << RED "[";
+        for (int i = 0; i < 10; i++) {
+            buf << (i < bars ? "█" : "░");
+        }
+        buf << "] " << pct << "%" RESET;
+    }
+    buf << "             \n"; // Clear any leftover chars
+    
+    // Mouth with visual
+    buf << "\n " BOLD "MOUTH" RESET "  " MAGENTA << getMouthVisual(mouth) << RESET;
+    buf << "  " << mouth << "μs\n";
+    
+    // Head position
+    buf << "\n " BOLD "HEAD" RESET "   " << getBar(head, 500, 2500, 22) << "\n";
+    buf << "        " DIM "←left" RESET "      " CYAN << head << "μs" RESET "      " DIM "right→" RESET "\n";
+    
+    // Controls
+    buf << "\n " YELLOW "E" RESET "·Flap  " YELLOW "A" RESET "/" YELLOW "D" RESET "·Turn  " YELLOW "Q" RESET "·Quit\n";
+    
+    std::cout << buf.str() << std::flush;
 }
 
 int main() {
-    std::cout << "Tea Animatronic Control" << std::endl;
-    std::cout << "Press 'e' to flap wings" << std::endl;
-    std::cout << "Hold 'a' to rotate head left, hold 'd' to rotate head right" << std::endl;
-    std::cout << "Press 'q' to quit" << std::endl;
+    std::cout << CLEAR << HIDE_CURSOR;
     
     PCA9685 pwm;
+    pwm.setServoAngle(0, 60);
+    pwm.setServoAngle(1, 120);
+    pwm.setServoPulse(2, 1500);
     
-    // Set servos to initial positions
-    pwm.setServoAngle(0, 60);      // Wing down
-    pwm.setServoAngle(1, 120);     // Wing down (inverted)
-    pwm.setServoPulse(2, 1500);    // Head center
-    
-    // Start audio-controlled mouth on channel 3
     AudioMouth mouth(&pwm, 3);
     mouth.start();
     
@@ -69,43 +134,42 @@ int main() {
     char ch;
     bool running = true;
     uint16_t headPulse = 1500;
-    long long lastFlapTime = 0;
-    const long long FLAP_COOLDOWN = 2000;
+    long long lastFlapTime = getCurrentTimeMs() - 2000; // Start ready
+    long long lastDraw = 0;
     
-    const int HEAD_SPEED = 20;
-    const int UPDATE_DELAY = 10000;
-    const uint16_t MIN_PULSE = 500;
-    const uint16_t MAX_PULSE = 2500;
+    std::ostringstream buf;
+    
+    draw(headPulse, mouth.getServoPulse(), lastFlapTime, buf);
     
     while (running) {
-        // Read all available characters
         while (read(STDIN_FILENO, &ch, 1) > 0) {
             if (ch == 'e' || ch == 'E') {
-                long long currentTime = getCurrentTimeMs();
-                if (currentTime - lastFlapTime >= FLAP_COOLDOWN) {
+                long long now = getCurrentTimeMs();
+                if (now - lastFlapTime >= 2000) {
                     flapWings(pwm);
-                    lastFlapTime = currentTime;
-                } else {
-                    long long timeLeft = (FLAP_COOLDOWN - (currentTime - lastFlapTime)) / 1000;
-                    std::cout << "Cooldown active. Wait " << timeLeft << " more second(s)." << std::endl;
+                    lastFlapTime = now;
                 }
             } else if (ch == 'a' || ch == 'A') {
-                headPulse -= HEAD_SPEED;
-                if (headPulse < MIN_PULSE) headPulse = MIN_PULSE;
+                if (headPulse > 500) headPulse -= 20;
                 pwm.setServoPulse(2, headPulse);
             } else if (ch == 'd' || ch == 'D') {
-                headPulse += HEAD_SPEED;
-                if (headPulse > MAX_PULSE) headPulse = MAX_PULSE;
+                if (headPulse < 2500) headPulse += 20;
                 pwm.setServoPulse(2, headPulse);
             } else if (ch == 'q' || ch == 'Q') {
-                std::cout << "\nQuitting..." << std::endl;
                 running = false;
             }
         }
         
-        usleep(UPDATE_DELAY);
+        long long now = getCurrentTimeMs();
+        if (now - lastDraw >= 100) {
+            draw(headPulse, mouth.getServoPulse(), lastFlapTime, buf);
+            lastDraw = now;
+        }
+        
+        usleep(10000);
     }
     
+    std::cout << SHOW_CURSOR << CLEAR;
     mouth.stop();
     setNonBlockingInput(false);
     

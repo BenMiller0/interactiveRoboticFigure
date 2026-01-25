@@ -43,7 +43,7 @@ PCA9685::PCA9685(const char* i2c_device, int address) {
     reset();
     setPWMFreq(50); // 50Hz for servos
     
-    std::cout << "PCA9685 initialized successfully" << std::endl;
+    //std::cout << "PCA9685 initialized successfully" << std::endl;
 }
 
 PCA9685::~PCA9685() {
