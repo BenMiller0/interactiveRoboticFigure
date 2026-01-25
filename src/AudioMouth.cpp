@@ -12,12 +12,15 @@ T clamp(T value, T minVal, T maxVal) {
     return value;
 }
 
+// -------- Pitch control --------
+// 1.15–1.35 is usable
+static constexpr double PITCH_FACTOR = 1.25;
+
 AudioMouth::AudioMouth(PCA9685* pwmController, uint8_t servoChannel)
     : pwm(pwmController),
       channel(servoChannel),
       running(false),
       prevServoPulse(SERVO_MIN_PULSE) {
-
     pwm->setServoPulse(channel, SERVO_MIN_PULSE);
 }
 
@@ -27,35 +30,26 @@ AudioMouth::~AudioMouth() {
 
 void AudioMouth::start() {
     if (running) return;
-
     running = true;
     audioThread = std::thread(&AudioMouth::audioProcessingLoop, this);
-    std::cout << "AudioMouth started on channel "
-              << static_cast<int>(channel) << std::endl;
 }
 
 void AudioMouth::stop() {
     if (!running) return;
-
     running = false;
-    if (audioThread.joinable()) {
+    if (audioThread.joinable())
         audioThread.join();
-    }
-
     pwm->setServoPulse(channel, SERVO_MIN_PULSE);
-    std::cout << "AudioMouth stopped" << std::endl;
 }
 
 void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
     double sum = 0.0;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++)
         sum += std::abs(buffer[i]);
-    }
 
     double avgAmplitude = sum / size;
-    if (avgAmplitude < SOUND_MIN_THRESHOLD + DEAD_ZONE) {
+    if (avgAmplitude < SOUND_MIN_THRESHOLD + DEAD_ZONE)
         return;
-    }
 
     double normalized = avgAmplitude / 32768.0;
     uint16_t targetPulse =
@@ -63,8 +57,8 @@ void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
         normalized * (SERVO_MAX_PULSE - SERVO_MIN_PULSE);
 
     targetPulse = clamp(targetPulse,
-                             SERVO_MIN_PULSE,
-                             SERVO_MAX_PULSE);
+                        SERVO_MIN_PULSE,
+                        SERVO_MAX_PULSE);
 
     double delta = targetPulse - prevServoPulse;
     delta = clamp(delta, -MAX_SERVO_SPEED, MAX_SERVO_SPEED);
@@ -73,15 +67,24 @@ void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
         prevServoPulse + delta * SMOOTHING_FACTOR;
 
     smoothed = clamp(smoothed,
-                          (double)SERVO_MIN_PULSE,
-                          (double)SERVO_MAX_PULSE);
+                     (double)SERVO_MIN_PULSE,
+                     (double)SERVO_MAX_PULSE);
 
     if (std::fabs(smoothed - prevServoPulse) >
         SERVO_MOVEMENT_THRESHOLD) {
-
         prevServoPulse = static_cast<uint16_t>(smoothed);
         pwm->setServoPulse(channel, prevServoPulse);
         usleep(SERVO_UPDATE_DELAY_US);
+    }
+}
+
+// -------- SAFE pitch-up (decimation) --------
+static void pitchUpBuffer(short* buffer, int frames) {
+    for (int i = 0; i < frames; i++) {
+        int src = static_cast<int>(i * PITCH_FACTOR);
+        if (src >= frames)
+            src = frames - 1;
+        buffer[i] = buffer[src];
     }
 }
 
@@ -92,34 +95,24 @@ void AudioMouth::audioProcessingLoop() {
     short* buffer = nullptr;
     int err;
 
-    /* ---------- Open capture ---------- */
     err = snd_pcm_open(&captureHandle,
                        DEVICE_INPUT,
                        SND_PCM_STREAM_CAPTURE,
                        0);
-    if (err < 0) {
-        std::cerr << "Cannot open capture device: "
-                  << snd_strerror(err) << std::endl;
-        running = false;
-        return;
-    }
+    if (err < 0) return;
 
-    /* ---------- Open playback ---------- */
     err = snd_pcm_open(&playbackHandle,
                        DEVICE_OUTPUT,
                        SND_PCM_STREAM_PLAYBACK,
                        0);
     if (err < 0) {
-        std::cerr << "Cannot open playback device: "
-                  << snd_strerror(err) << std::endl;
         snd_pcm_close(captureHandle);
-        running = false;
         return;
     }
 
     snd_pcm_hw_params_alloca(&hwParams);
 
-    /* ---------- Configure capture ---------- */
+    // Capture
     snd_pcm_hw_params_any(captureHandle, hwParams);
     snd_pcm_hw_params_set_access(
         captureHandle, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
@@ -134,7 +127,7 @@ void AudioMouth::audioProcessingLoop() {
     snd_pcm_hw_params(captureHandle, hwParams);
     snd_pcm_prepare(captureHandle);
 
-    /* ---------- Configure playback ---------- */
+    // Playback (same rate, NO ALSA resampling)
     snd_pcm_hw_params_any(playbackHandle, hwParams);
     snd_pcm_hw_params_set_access(
         playbackHandle, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
@@ -149,38 +142,24 @@ void AudioMouth::audioProcessingLoop() {
 
     buffer = static_cast<short*>(
         malloc(FRAMES * CHANNELS * sizeof(short)));
+    if (!buffer) return;
 
-    if (!buffer) {
-        std::cerr << "Audio buffer allocation failed\n";
-        snd_pcm_close(captureHandle);
-        snd_pcm_close(playbackHandle);
-        running = false;
-        return;
-    }
-
-    std::cout << "Audio capture + playback running\n";
-
-    /* ---------- Main loop ---------- */
     while (running) {
         err = snd_pcm_readi(captureHandle, buffer, FRAMES);
-        if (err < 0) {
+        if (err != FRAMES) {
             snd_pcm_prepare(captureHandle);
             continue;
         }
 
         moveServoBasedOnAmplitude(buffer, FRAMES);
 
+        pitchUpBuffer(buffer, FRAMES);
+
         err = snd_pcm_writei(playbackHandle, buffer, FRAMES);
-        if (err == -EPIPE) {
+        if (err == -EPIPE)
             snd_pcm_prepare(playbackHandle);
-        }
-        else if (err < 0) {
-            std::cerr << "Playback error: "
-                      << snd_strerror(err) << std::endl;
-        }
     }
 
-    /* ---------- Cleanup ---------- */
     free(buffer);
     snd_pcm_close(captureHandle);
     snd_pcm_close(playbackHandle);
