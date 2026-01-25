@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <algorithm>
 
+// Simple C++11 clamp replacement
 template <typename T>
 T clamp(T value, T minVal, T maxVal) {
     if (value < minVal) return minVal;
