@@ -1,4 +1,5 @@
 #include "PCA9685.h"
+#include "AudioMouth.h"
 #include <iostream>
 #include <unistd.h>
 #include <termios.h>
@@ -36,12 +37,12 @@ void flapWings(PCA9685& pwm) {
     const float DOWN_ANGLE = 60;
     const int MOVE_DELAY = 500000; // 500ms
     
-    // Wings up - channel 0 goes UP, channel 1 goes in opposite direction
+    // Wings up
     pwm.setServoAngle(0, UP_ANGLE);
     pwm.setServoAngle(1, 180 - UP_ANGLE);
     usleep(MOVE_DELAY);
     
-    // Wings down - channel 0 goes DOWN, channel 1 goes in opposite direction
+    // Wings down
     pwm.setServoAngle(0, DOWN_ANGLE);
     pwm.setServoAngle(1, 180 - DOWN_ANGLE);
 }
@@ -59,15 +60,19 @@ int main() {
     pwm.setServoAngle(1, 120);     // Wing down (inverted)
     pwm.setServoPulse(2, 1500);    // Head center
     
+    // Start audio-controlled mouth on channel 3
+    AudioMouth mouth(&pwm, 3);
+    mouth.start();
+    
     setNonBlockingInput(true);
     
     char ch;
     bool running = true;
     uint16_t headPulse = 1500;
     long long lastFlapTime = 0;
-    const long long FLAP_COOLDOWN = 2000; // 2 seconds in milliseconds
+    const long long FLAP_COOLDOWN = 2000;
     
-    const int HEAD_SPEED = 40;
+    const int HEAD_SPEED = 20;
     const int UPDATE_DELAY = 10000;
     const uint16_t MIN_PULSE = 500;
     const uint16_t MAX_PULSE = 2500;
@@ -101,6 +106,7 @@ int main() {
         usleep(UPDATE_DELAY);
     }
     
+    mouth.stop();
     setNonBlockingInput(false);
     
     return 0;
