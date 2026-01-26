@@ -1,4 +1,4 @@
-# Taro Animatronic Controller
+# Interactive Robotic Figure - Taro The Talking Bird
 
 This project is a Raspberry Pi based animatronic control system designed to drive a character named "Taro." It combines real-time audio processing with servo control to create responsive mouth movement synchronized to sound, along with manual controls for head movement and wing flapping.
 
