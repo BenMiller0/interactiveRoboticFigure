@@ -1,3 +1,6 @@
+// This is a servo control test using I2C in C++
+// Moves servo on channel 0 in full range
+
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
@@ -10,8 +13,6 @@
 #define MODE1 0x00
 #define PRESCALE 0xFE
 #define LED0_ON_L 0x06
-
-// Compile: g++ -o servo_control servo_control.cpp -std=c++11
 
 class PCA9685 {
 private:

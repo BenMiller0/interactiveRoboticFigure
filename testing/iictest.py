@@ -1,3 +1,6 @@
+# This is a servo control test using I2C in python
+# Moves servos on channel 0 and 1 in their full range
+
 from adafruit_servokit import ServoKit
 import time
 
