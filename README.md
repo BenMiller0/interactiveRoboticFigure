@@ -10,14 +10,17 @@ Watch taro in action:
 
 Taro has been seen around campus talking to students:
 
-<img src="assets/concept_art/Tabling_With_Taro.png" alt="Concept Art" height="150">
-<img src="assets/concept_art/Tabling_With_Taro2.png" alt="Concept Art" height="150">
+<p>
+    <img src="assets/concept_art/Tabling_With_Taro.png" alt="Concept Art" height="150">
+    <img src="assets/concept_art/Tabling_With_Taro2.png" alt="Concept Art" height="150">
+</p>
 
 Taro concept art:
 
-<img src="assets/concept_art/Taro.jpg" alt="Concept Art" height="200">
-<img src="assets/concept_art/Taro_Sticker.png" alt="Concept Art" height="200">
-
+<p>
+    <img src="assets/concept_art/Taro.jpg" alt="Concept Art" height="200">
+    <img src="assets/concept_art/Taro_Sticker.png" alt="Concept Art" height="200">
+</p>
 
 ## Features
 
