@@ -45,7 +45,7 @@ src/                  Main C++ source files
   main.cpp            Entry point and UI
   AudioMouth.cpp      Audio processing thread
   PCA9685.cpp         I2C PWM implementation
-testing/              Experimental and test code
+test/              Experimental and test code
 Makefile              Build configuration
 README.md             Project documentation
 ```
