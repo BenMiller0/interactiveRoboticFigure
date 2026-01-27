@@ -11,8 +11,8 @@ Watch taro in action:
 Taro has been seen around campus talking to students:
 
 <p>
-    <img src="assets/concept_art/Tabling_With_Taro.png" alt="Concept Art" height="150">
-    <img src="assets/concept_art/Tabling_With_Taro2.png" alt="Concept Art" height="150">
+    <img src="assets/promotional_material/Tabling_With_Taro.png" alt="Concept Art" height="150">
+    <img src="assets/promotional_material/Tabling_With_Taro2.png" alt="Concept Art" height="150">
 </p>
 
 Taro concept art:
@@ -128,6 +128,10 @@ The `AudioMouth` class runs in its own thread and performs:
 * Optional pitch shifting via safe decimation
 
 This results in natural-looking mouth movement without jitter.
+
+Here is a visualization of how audio is converted to mouth movement:
+
+<img src="assets\concept_art\program_cycle.png" alt="Concept Art" height="200">
 
 
 ## PCA9685 Servo Driver
