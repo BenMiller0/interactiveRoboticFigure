@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/time.h>
 #include <sstream>
+#include <cmath>
 
 #define CLEAR "\033[2J\033[H"
 #define HIDE_CURSOR "\033[?25l"
@@ -19,14 +20,7 @@
 #define BOLD "\033[1m"
 #define DIM "\033[2m"
 
-// --- C++11 clamp replacement ---
-template <typename T>
-T clamp(T value, T minVal, T maxVal) {
-    if (value < minVal) return minVal;
-    if (value > maxVal) return maxVal;
-    return value;
-}
-
+// --- Non-blocking input setup ---
 void setNonBlockingInput(bool enable) {
     static struct termios oldt, newt;
     if (enable) {
@@ -41,12 +35,14 @@ void setNonBlockingInput(bool enable) {
     }
 }
 
+// --- Time helper ---
 long long getCurrentTimeMs() {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
     return (long long)(tv.tv_sec) * 1000 + (long long)(tv.tv_usec) / 1000;
 }
 
+// --- Wings ---
 void flapWings(PCA9685& pwm) {
     pwm.setServoAngle(0, 240);
     pwm.setServoAngle(1, -60);
@@ -55,13 +51,20 @@ void flapWings(PCA9685& pwm) {
     pwm.setServoAngle(1, 120);
 }
 
+// --- Clamp helper (C++11 compatible) ---
+template <typename T>
+T clamp(T val, T minVal, T maxVal) {
+    return (val < minVal) ? minVal : (val > maxVal) ? maxVal : val;
+}
+
+// --- Visual helpers ---
 std::string getBar(uint16_t pulse, uint16_t min, uint16_t max, int width = 20) {
     int pos = ((pulse - min) * width) / (max - min);
     pos = clamp(pos, 0, width);
     std::string bar = "";
     for (int i = 0; i < width; i++) {
         if (i == pos) bar += "█";
-        else if (i == width / 2) bar += "┼";
+        else if (i == width/2) bar += "┼";
         else bar += "─";
     }
     return bar;
@@ -70,7 +73,7 @@ std::string getBar(uint16_t pulse, uint16_t min, uint16_t max, int width = 20) {
 std::string getMouthVisual(uint16_t pulse) {
     int opening = ((pulse - 1000) * 5) / 1000;
     opening = clamp(opening, 0, 5);
-    switch (opening) {
+    switch(opening) {
         case 0: return "  ─────  ";
         case 1: return " ╱     ╲ ";
         case 2: return "╱       ╲";
@@ -84,15 +87,15 @@ std::string getMouthVisual(uint16_t pulse) {
 void draw(uint16_t head, uint16_t mouth, long long lastFlap, std::ostringstream& buf) {
     buf.str("");
     buf << "\033[H";
-
+    
     buf << BOLD CYAN "╔════════════════════════════╗\n";
     buf << "║   🦅 Taro Controller 🦅    ║\n";
     buf << "╚════════════════════════════╝\n" RESET;
-
+    
     long long ms = getCurrentTimeMs() - lastFlap;
     int pct = (ms * 100) / 2000;
     pct = std::min(pct, 100);
-
+    
     buf << "\n " BOLD "WINGS" RESET "  ";
     if (pct >= 100) {
         buf << GREEN "✓ Ready      " RESET;
@@ -104,43 +107,46 @@ void draw(uint16_t head, uint16_t mouth, long long lastFlap, std::ostringstream&
         buf << "] " << pct << "%" RESET;
     }
     buf << "             \n";
-
+    
     buf << "\n " BOLD "MOUTH" RESET "  " MAGENTA << getMouthVisual(mouth) << RESET;
     buf << "  " << mouth << "μs\n";
-
+    
     buf << "\n " BOLD "HEAD" RESET "   " << getBar(head, 500, 2500, 22) << "\n";
     buf << "        " DIM "←left" RESET "      " CYAN << head << "μs" RESET "      " DIM "right→" RESET "\n";
-
+    
     buf << "\n " YELLOW "E" RESET "·Flap  " YELLOW "A" RESET "/" YELLOW "D" RESET "·Turn  " YELLOW "R" RESET "·Recenter  " YELLOW "Q" RESET "·Quit\n";
-
+    
     std::cout << buf.str() << std::flush;
 }
 
 int main() {
     std::cout << CLEAR << HIDE_CURSOR;
-
+    
     PCA9685 pwm;
     pwm.setServoAngle(0, 60);
     pwm.setServoAngle(1, 120);
     pwm.setServoPulse(2, 1500);
-
+    
     AudioMouth mouth(&pwm, 3);
     mouth.start();
-
+    
     setNonBlockingInput(true);
-
+    
     char ch;
     bool running = true;
     bool recentering = false;
-    uint16_t headPulse = 1500;
     long long lastFlapTime = getCurrentTimeMs() - 2000;
     long long lastDraw = 0;
-
+    
+    // --- Smooth head variables ---
+    double headCurrent = 1500.0;
+    double headTarget = 1500.0;
+    const double HEAD_STEP = 80.0;    // speed increment for keys
+    const double HEAD_SMOOTH = 0.2;   // fraction per loop
+    
     std::ostringstream buf;
-    draw(headPulse, mouth.getServoPulse(), lastFlapTime, buf);
-
-    const int HEAD_SPEED = 40; // <-- increased speed for both A/D and R
-
+    draw(static_cast<uint16_t>(headCurrent), mouth.getServoPulse(), lastFlapTime, buf);
+    
     while (running) {
         // --- Input handling ---
         while (read(STDIN_FILENO, &ch, 1) > 0) {
@@ -151,48 +157,40 @@ int main() {
                     lastFlapTime = now;
                 }
             } else if ((ch == 'a' || ch == 'A') && !recentering) {
-                if (headPulse > 500) headPulse -= HEAD_SPEED;
-                if (headPulse < 500) headPulse = 500;
-                pwm.setServoPulse(2, headPulse);
+                headTarget -= HEAD_STEP;
+                if (headTarget < 500) headTarget = 500;
             } else if ((ch == 'd' || ch == 'D') && !recentering) {
-                if (headPulse < 2500) headPulse += HEAD_SPEED;
-                if (headPulse > 2500) headPulse = 2500;
-                pwm.setServoPulse(2, headPulse);
-            } else if (ch == 'r' || ch == 'R') {  // recenter head
-                if (!recentering && headPulse != 1500) {
-                    recentering = true;
-                }
-            } else if (ch == 'q' || ch == 'Q') {  // quit program
+                headTarget += HEAD_STEP;
+                if (headTarget > 2500) headTarget = 2500;
+            } else if (ch == 'r' || ch == 'R') { // recenter head
+                recentering = true;
+                headTarget = 1500.0;
+            } else if (ch == 'q' || ch == 'Q') { // quit
                 running = false;
             }
         }
-
-        // --- Head recentering ---
-        if (recentering) {
-            if (headPulse < 1500) {
-                headPulse += HEAD_SPEED;
-                if (headPulse > 1500) headPulse = 1500;
-            } else if (headPulse > 1500) {
-                headPulse -= HEAD_SPEED;
-                if (headPulse < 1500) headPulse = 1500;
-            }
-            pwm.setServoPulse(2, headPulse);
-            if (headPulse == 1500) recentering = false;
+        
+        // --- Smooth head update ---
+        headCurrent += (headTarget - headCurrent) * HEAD_SMOOTH;
+        pwm.setServoPulse(2, static_cast<uint16_t>(headCurrent));
+        if (recentering && fabs(headCurrent - 1500.0) < 1.0) {
+            headCurrent = 1500.0;
+            recentering = false;
         }
-
+        
         // --- Draw ---
         long long now = getCurrentTimeMs();
         if (now - lastDraw >= 100) {
-            draw(headPulse, mouth.getServoPulse(), lastFlapTime, buf);
+            draw(static_cast<uint16_t>(headCurrent), mouth.getServoPulse(), lastFlapTime, buf);
             lastDraw = now;
         }
-
+        
         usleep(10000);
     }
-
+    
     std::cout << SHOW_CURSOR << CLEAR;
     mouth.stop();
     setNonBlockingInput(false);
-
+    
     return 0;
 }
