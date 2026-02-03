@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <algorithm>
+#include <vector>
+#include <deque>
 
 // Simple C++11 clamp replacement
 template <typename T>
@@ -80,12 +82,87 @@ void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
 }
 
 // -------- SAFE pitch-up (decimation) --------
-static void pitchUpBuffer(short* buffer, int frames) {
-    for (int i = 0; i < frames; i++) {
-        int src = static_cast<int>(i * PITCH_FACTOR);
-        if (src >= frames)
-            src = frames - 1;
-        buffer[i] = buffer[src];
+// Rubber-band-like effect: a simple variable-speed resampler with a short
+// history buffer. Playback speed is driven by the normalized amplitude
+// (0..1) and smoothed over time to create a stretchy "rubber band" sound.
+static void rubberBandEffect(short* buffer, int frames, double ampNorm) {
+    // Single tuning knob: 0 = off, 1 = default, >1 = stronger effect
+    static constexpr double EFFECT_AMOUNT = 1.0;
+
+    static std::deque<short> history;
+    static double readPos = 0.0;
+    static double playSpeed = 1.0;
+    static double targetSpeed = 1.0;
+
+    // Scale internal parameters from EFFECT_AMOUNT so you can tune the
+    // whole effect by changing one variable above.
+    const double MIN_ACTIVE_BASE = 0.02; // normalized
+    const double SENS_BASE = 1.5;
+    const double MIN_SPEED_BASE = 0.6;
+    const double MAX_SPEED_BASE = 1.8;
+    const size_t HISTORY_MULT_BASE = 8;
+
+    const double MIN_ACTIVE = MIN_ACTIVE_BASE / std::max(0.0001, EFFECT_AMOUNT);
+    const double sensitivity = SENS_BASE * EFFECT_AMOUNT;
+    const double min_speed = MIN_SPEED_BASE / std::max(0.1, EFFECT_AMOUNT);
+    const double max_speed = 1.0 + (MAX_SPEED_BASE - 1.0) * EFFECT_AMOUNT;
+    const size_t MAX_HISTORY = frames * static_cast<size_t>(std::max(1.0, HISTORY_MULT_BASE * EFFECT_AMOUNT));
+
+    // Compute target speed from amplitude
+    if (ampNorm < MIN_ACTIVE) {
+        targetSpeed = 1.0;
+    } else {
+        targetSpeed = 1.0 + (ampNorm - MIN_ACTIVE) * sensitivity;
+    }
+    // clamp
+    if (targetSpeed < min_speed) targetSpeed = min_speed;
+    if (targetSpeed > max_speed) targetSpeed = max_speed;
+
+    // smooth speed changes
+    const double SPEED_SMOOTH = 0.12;
+    playSpeed += (targetSpeed - playSpeed) * SPEED_SMOOTH;
+
+    // Append incoming samples to history
+    for (int i = 0; i < frames; ++i) history.push_back(buffer[i]);
+    // Trim history if it grows too large
+    while (history.size() > MAX_HISTORY) history.pop_front();
+
+    // Need enough history to read; otherwise output passthrough
+    if (history.size() < static_cast<size_t>(frames) + 2) {
+        return;
+    }
+
+    // Ensure readPos points into history
+    if (readPos < 0.0) readPos = 0.0;
+    if (readPos > static_cast<double>(history.size() - 1))
+        readPos = static_cast<double>(history.size() - 1 - frames);
+
+    // Resample from history into buffer using linear interpolation
+    double rp = readPos;
+    for (int i = 0; i < frames; ++i) {
+        size_t i0 = static_cast<size_t>(std::floor(rp));
+        size_t i1 = (i0 + 1 < history.size()) ? i0 + 1 : i0;
+        double frac = rp - static_cast<double>(i0);
+        double s0 = static_cast<double>(history[i0]);
+        double s1 = static_cast<double>(history[i1]);
+        double out = s0 + (s1 - s0) * frac;
+        // clamp to int16 range
+        if (out > 32767.0) out = 32767.0;
+        if (out < -32768.0) out = -32768.0;
+        buffer[i] = static_cast<short>(out);
+        rp += playSpeed;
+        // avoid reading past available history
+        if (rp >= static_cast<double>(history.size() - 1)) {
+            rp = static_cast<double>(history.size() - 1);
+            break;
+        }
+    }
+
+    // Advance readPos and trim consumed history to keep memory bounded
+    readPos = rp;
+    while (readPos >= 1.0 && history.size() > static_cast<size_t>(frames) * 2) {
+        history.pop_front();
+        readPos -= 1.0;
     }
 }
 
@@ -157,8 +234,14 @@ void AudioMouth::audioProcessingLoop() {
             continue;
         }
 
+        // compute average amplitude for both servo and effect control
+        double sumA = 0.0;
+        for (int i = 0; i < FRAMES; ++i) sumA += std::abs(buffer[i]);
+        double avgA = sumA / FRAMES;
+        double norm = avgA / 32768.0;
+
         moveServoBasedOnAmplitude(buffer, FRAMES);
-        pitchUpBuffer(buffer, FRAMES);
+        rubberBandEffect(buffer, FRAMES, norm);
 
         // Write to both outputs
         err = snd_pcm_writei(playbackHandle1, buffer, FRAMES);
