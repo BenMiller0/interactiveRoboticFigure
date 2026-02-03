@@ -91,58 +91,63 @@ static void pitchUpBuffer(short* buffer, int frames) {
 
 void AudioMouth::audioProcessingLoop() {
     snd_pcm_t* captureHandle = nullptr;
-    snd_pcm_t* playbackHandle = nullptr;
+    snd_pcm_t* playbackHandle1 = nullptr;
+    snd_pcm_t* playbackHandle2 = nullptr;
     snd_pcm_hw_params_t* hwParams = nullptr;
     short* buffer = nullptr;
     int err;
 
-    err = snd_pcm_open(&captureHandle,
-                       DEVICE_INPUT,
-                       SND_PCM_STREAM_CAPTURE,
-                       0);
+    // --- Capture ---
+    err = snd_pcm_open(&captureHandle, DEVICE_INPUT, SND_PCM_STREAM_CAPTURE, 0);
     if (err < 0) return;
 
-    err = snd_pcm_open(&playbackHandle,
-                       DEVICE_OUTPUT,
-                       SND_PCM_STREAM_PLAYBACK,
-                       0);
+    // --- Playback 1 ---
+    err = snd_pcm_open(&playbackHandle1, DEVICE_OUTPUT1, SND_PCM_STREAM_PLAYBACK, 0);
     if (err < 0) {
         snd_pcm_close(captureHandle);
         return;
     }
 
+    // --- Playback 2 ---
+    err = snd_pcm_open(&playbackHandle2, DEVICE_OUTPUT2, SND_PCM_STREAM_PLAYBACK, 0);
+    if (err < 0) {
+        snd_pcm_close(captureHandle);
+        snd_pcm_close(playbackHandle1);
+        return;
+    }
+
     snd_pcm_hw_params_alloca(&hwParams);
 
-    // Capture
+    // Configure capture
     snd_pcm_hw_params_any(captureHandle, hwParams);
-    snd_pcm_hw_params_set_access(
-        captureHandle, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
-    snd_pcm_hw_params_set_format(
-        captureHandle, hwParams, SND_PCM_FORMAT_S16_LE);
-
+    snd_pcm_hw_params_set_access(captureHandle, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
+    snd_pcm_hw_params_set_format(captureHandle, hwParams, SND_PCM_FORMAT_S16_LE);
     unsigned int rate = SAMPLE_RATE;
-    snd_pcm_hw_params_set_rate_near(
-        captureHandle, hwParams, &rate, nullptr);
-    snd_pcm_hw_params_set_channels(
-        captureHandle, hwParams, CHANNELS);
+    snd_pcm_hw_params_set_rate_near(captureHandle, hwParams, &rate, nullptr);
+    snd_pcm_hw_params_set_channels(captureHandle, hwParams, CHANNELS);
     snd_pcm_hw_params(captureHandle, hwParams);
     snd_pcm_prepare(captureHandle);
 
-    // Playback (same rate, NO ALSA resampling)
-    snd_pcm_hw_params_any(playbackHandle, hwParams);
-    snd_pcm_hw_params_set_access(
-        playbackHandle, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
-    snd_pcm_hw_params_set_format(
-        playbackHandle, hwParams, SND_PCM_FORMAT_S16_LE);
-    snd_pcm_hw_params_set_rate_near(
-        playbackHandle, hwParams, &rate, nullptr);
-    snd_pcm_hw_params_set_channels(
-        playbackHandle, hwParams, CHANNELS);
-    snd_pcm_hw_params(playbackHandle, hwParams);
-    snd_pcm_prepare(playbackHandle);
+    // Configure playback 1
+    snd_pcm_hw_params_any(playbackHandle1, hwParams);
+    snd_pcm_hw_params_set_access(playbackHandle1, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
+    snd_pcm_hw_params_set_format(playbackHandle1, hwParams, SND_PCM_FORMAT_S16_LE);
+    snd_pcm_hw_params_set_rate_near(playbackHandle1, hwParams, &rate, nullptr);
+    snd_pcm_hw_params_set_channels(playbackHandle1, hwParams, CHANNELS);
+    snd_pcm_hw_params(playbackHandle1, hwParams);
+    snd_pcm_prepare(playbackHandle1);
 
-    buffer = static_cast<short*>(
-        malloc(FRAMES * CHANNELS * sizeof(short)));
+    // Configure playback 2
+    snd_pcm_hw_params_any(playbackHandle2, hwParams);
+    snd_pcm_hw_params_set_access(playbackHandle2, hwParams, SND_PCM_ACCESS_RW_INTERLEAVED);
+    snd_pcm_hw_params_set_format(playbackHandle2, hwParams, SND_PCM_FORMAT_S16_LE);
+    snd_pcm_hw_params_set_rate_near(playbackHandle2, hwParams, &rate, nullptr);
+    snd_pcm_hw_params_set_channels(playbackHandle2, hwParams, CHANNELS);
+    snd_pcm_hw_params(playbackHandle2, hwParams);
+    snd_pcm_prepare(playbackHandle2);
+
+    // Allocate buffer
+    buffer = static_cast<short*>(malloc(FRAMES * CHANNELS * sizeof(short)));
     if (!buffer) return;
 
     while (running) {
@@ -153,15 +158,18 @@ void AudioMouth::audioProcessingLoop() {
         }
 
         moveServoBasedOnAmplitude(buffer, FRAMES);
-
         pitchUpBuffer(buffer, FRAMES);
 
-        err = snd_pcm_writei(playbackHandle, buffer, FRAMES);
-        if (err == -EPIPE)
-            snd_pcm_prepare(playbackHandle);
+        // Write to both outputs
+        err = snd_pcm_writei(playbackHandle1, buffer, FRAMES);
+        if (err == -EPIPE) snd_pcm_prepare(playbackHandle1);
+
+        err = snd_pcm_writei(playbackHandle2, buffer, FRAMES);
+        if (err == -EPIPE) snd_pcm_prepare(playbackHandle2);
     }
 
     free(buffer);
     snd_pcm_close(captureHandle);
-    snd_pcm_close(playbackHandle);
+    snd_pcm_close(playbackHandle1);
+    snd_pcm_close(playbackHandle2);
 }

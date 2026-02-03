@@ -19,8 +19,10 @@ private:
     static constexpr int CHANNELS = 1;
     static constexpr int FRAMES = 1024;
 
-    const char* DEVICE_INPUT  = "plughw:CARD=Device,DEV=0";
-    const char* DEVICE_OUTPUT = "plughw:CARD=UACDemoV10,DEV=0";
+    // Multiple output devices
+    const char* DEVICE_INPUT   = "plughw:CARD=Device,DEV=0";
+    const char* DEVICE_OUTPUT1 = "plughw:CARD=UACDemoV10,DEV=0";
+    const char* DEVICE_OUTPUT2 = "plughw:CARD=Device_1,DEV=0";
 
     /* ---------- Servo settings ---------- */
     static constexpr uint16_t SERVO_MIN_PULSE = 1000;  // closed
@@ -40,7 +42,7 @@ private:
 public:
     AudioMouth(PCA9685* pwmController, uint8_t servoChannel);
     ~AudioMouth();
-    int getServoPulse() {return prevServoPulse;}
+    int getServoPulse() { return prevServoPulse; }
 
     void start();
     void stop();
