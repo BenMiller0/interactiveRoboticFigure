@@ -51,30 +51,31 @@ void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
         sum += std::abs(buffer[i]);
 
     double avgAmplitude = sum / size;
-    if (avgAmplitude < SOUND_MIN_THRESHOLD + DEAD_ZONE)
+
+    // Reduce the threshold for quieter sounds
+    if (avgAmplitude < SOUND_MIN_THRESHOLD)
         return;
 
-    double normalized = avgAmplitude / 32768.0;
+    // Normalize and scale sensitivity
+    double normalized = (avgAmplitude / 32768.0) * 2.0; // double sensitivity
+    if (normalized > 1.0) normalized = 1.0;
+
     uint16_t targetPulse =
         SERVO_MIN_PULSE +
         normalized * (SERVO_MAX_PULSE - SERVO_MIN_PULSE);
 
-    targetPulse = clamp(targetPulse,
-                        SERVO_MIN_PULSE,
-                        SERVO_MAX_PULSE);
+    // Clamp target pulse within servo range
+    targetPulse = clamp(targetPulse, SERVO_MIN_PULSE, SERVO_MAX_PULSE);
 
+    // Limit how fast the servo can move
     double delta = targetPulse - prevServoPulse;
     delta = clamp(delta, -MAX_SERVO_SPEED, MAX_SERVO_SPEED);
 
-    double smoothed =
-        prevServoPulse + delta * SMOOTHING_FACTOR;
+    // Smooth movement
+    double smoothed = prevServoPulse + delta * SMOOTHING_FACTOR;
+    smoothed = clamp(smoothed, (double)SERVO_MIN_PULSE, (double)SERVO_MAX_PULSE);
 
-    smoothed = clamp(smoothed,
-                     (double)SERVO_MIN_PULSE,
-                     (double)SERVO_MAX_PULSE);
-
-    if (std::fabs(smoothed - prevServoPulse) >
-        SERVO_MOVEMENT_THRESHOLD) {
+    if (std::fabs(smoothed - prevServoPulse) > SERVO_MOVEMENT_THRESHOLD) {
         prevServoPulse = static_cast<uint16_t>(smoothed);
         pwm->setServoPulse(channel, prevServoPulse);
         usleep(SERVO_UPDATE_DELAY_US);

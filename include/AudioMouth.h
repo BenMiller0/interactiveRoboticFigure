@@ -25,9 +25,9 @@ private:
     const char* DEVICE_OUTPUT2 = "plughw:CARD=Device_1,DEV=0";
 
     /* ---------- Servo settings ---------- */
-    static constexpr uint16_t SERVO_MIN_PULSE = 1000;  // closed
-    static constexpr uint16_t SERVO_MAX_PULSE = 1500;  // open
-    static constexpr int SOUND_MIN_THRESHOLD = 100;
+    static constexpr uint16_t SERVO_MIN_PULSE = 950;  // closed
+    static constexpr uint16_t SERVO_MAX_PULSE = 1200;  // open
+    static constexpr int SOUND_MIN_THRESHOLD = 50;
     static constexpr double SMOOTHING_FACTOR = 0.8;
     static constexpr int DEAD_ZONE = 300;
     static constexpr double SERVO_MOVEMENT_THRESHOLD = 5.0;
