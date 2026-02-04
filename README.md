@@ -112,6 +112,7 @@ While running, the program captures keyboard input in the terminal:
 * `E`  Flap wings (with cooldown)
 * `A`  Turn head left
 * `D`  Turn head right
+* `R`  Recenter head (disables A and D until head is centered)
 * `Q`  Quit program
 
 The terminal UI updates in real time to show servo positions and audio-driven mouth state.
