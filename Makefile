@@ -6,8 +6,12 @@ SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build
 
-SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/PCA9685.cpp $(SRC_DIR)/AudioMouth.cpp
-OBJECTS = $(BUILD_DIR)/main.o $(BUILD_DIR)/PCA9685.o $(BUILD_DIR)/AudioMouth.o
+SOURCES = $(SRC_DIR)/main.cpp \
+          $(SRC_DIR)/PCA9685.cpp \
+          $(SRC_DIR)/AudioMouth.cpp \
+          $(SRC_DIR)/AutoController.cpp
+
+OBJECTS = $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SOURCES))
 
 all: $(BUILD_DIR) $(TARGET)
 

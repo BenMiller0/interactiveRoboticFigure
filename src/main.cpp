@@ -1,5 +1,6 @@
 #include "PCA9685.h"
 #include "AudioMouth.h"
+#include "AutoController.h"
 #include <iostream>
 #include <unistd.h>
 #include <termios.h>
@@ -89,8 +90,8 @@ void draw(uint16_t head, uint16_t mouth, long long lastFlap, std::ostringstream&
     buf << "\033[H";
     
     buf << BOLD CYAN "╔════════════════════════════╗\n";
-    buf << "║   🦅 Taro Controller 🦅    ║\n";
-    buf << "╚════════════════════════════╝\n" RESET;
+    buf <<           "║      Taro Controller       ║\n";
+    buf <<           "╚════════════════════════════╝\n";
     
     long long ms = getCurrentTimeMs() - lastFlap;
     int pct = (ms * 100) / 2000;
@@ -129,6 +130,7 @@ int main() {
     
     AudioMouth mouth(&pwm, 3);
     mouth.start();
+    AutoController autoCtrl(&pwm);
     
     setNonBlockingInput(true);
     
@@ -167,6 +169,14 @@ int main() {
                 headTarget = 1500.0;
             } else if (ch == 'q' || ch == 'Q') { // quit
                 running = false;
+            } else if (ch == 'f' || ch == 'F') {
+                if (autoCtrl.isRunning()) {
+                    autoCtrl.stop();
+                    recentering = true;      // smoothly return head to center on exit
+                    headTarget = 1500.0;
+                } else {
+                    autoCtrl.start();
+                }
             }
         }
         
