@@ -1,5 +1,5 @@
 #include "PCA9685.h"
-#include "AudioMouth.h"
+#include "Mouth.h"
 #include "Wings.h"
 #include "TaroUI.h"
 #include <unistd.h>
@@ -14,7 +14,7 @@ int main() {
     PCA9685 pwm;
     pwm.setServoPulse(2, 1500);
 
-    AudioMouth mouth(&pwm);
+    Mouth mouth(&pwm);
     mouth.start();
 
     Wings wings(pwm);

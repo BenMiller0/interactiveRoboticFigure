@@ -1,4 +1,4 @@
-#include "AudioMouth.h"
+#include "Mouth.h"
 #include <iostream>
 #include <unistd.h>
 #include <cmath>
@@ -19,24 +19,24 @@ T clamp(T value, T minVal, T maxVal) {
 // 1.15–1.35 is usable
 static constexpr double PITCH_FACTOR = 1.25;
 
-AudioMouth::AudioMouth(PCA9685* pwmController)
+Mouth::Mouth(PCA9685* pwmController)
     : pwm(pwmController),
       running(false),
       prevServoPulse(SERVO_MIN_PULSE) {
     pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
 }
 
-AudioMouth::~AudioMouth() {
+Mouth::~Mouth() {
     stop();
 }
 
-void AudioMouth::start() {
+void Mouth::start() {
     if (running) return;
     running = true;
-    audioThread = std::thread(&AudioMouth::audioProcessingLoop, this);
+    audioThread = std::thread(&Mouth::audioProcessingLoop, this);
 }
 
-void AudioMouth::stop() {
+void Mouth::stop() {
     if (!running) return;
     running = false;
     if (audioThread.joinable())
@@ -44,7 +44,7 @@ void AudioMouth::stop() {
     pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
 }
 
-void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
+void Mouth::moveServoBasedOnAmplitude(short* buffer, int size) {
     double sum = 0.0;
     for (int i = 0; i < size; i++)
         sum += std::abs(buffer[i]);
@@ -166,7 +166,7 @@ static void rubberBandEffect(short* buffer, int frames, double ampNorm) {
     }
 }
 
-void AudioMouth::audioProcessingLoop() {
+void Mouth::audioProcessingLoop() {
 
     snd_pcm_t* captureHandle = nullptr;
     snd_pcm_t* playbackHandle1 = nullptr;

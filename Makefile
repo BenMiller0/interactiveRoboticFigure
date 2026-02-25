@@ -6,8 +6,8 @@ SRC_DIR = src
 INCLUDE_DIR = include
 BUILD_DIR = build
 
-SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/PCA9685.cpp $(SRC_DIR)/AudioMouth.cpp $(SRC_DIR)/Wings.cpp $(SRC_DIR)/TaroUI.cpp
-OBJECTS = $(BUILD_DIR)/main.o $(BUILD_DIR)/PCA9685.o $(BUILD_DIR)/AudioMouth.o $(BUILD_DIR)/Wings.o $(BUILD_DIR)/TaroUI.o
+SOURCES = $(SRC_DIR)/main.cpp $(SRC_DIR)/PCA9685.cpp $(SRC_DIR)/Mouth.cpp $(SRC_DIR)/Wings.cpp $(SRC_DIR)/TaroUI.cpp
+OBJECTS = $(BUILD_DIR)/main.o $(BUILD_DIR)/PCA9685.o $(BUILD_DIR)/Mouth.o $(BUILD_DIR)/Wings.o $(BUILD_DIR)/TaroUI.o
 
 all: $(BUILD_DIR) $(TARGET)
 

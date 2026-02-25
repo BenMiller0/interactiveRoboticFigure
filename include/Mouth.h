@@ -1,5 +1,5 @@
-#ifndef AUDIOMOUTH_H
-#define AUDIOMOUTH_H
+#ifndef MOUTH_H
+#define MOUTH_H
 
 #include "PCA9685.h"
 #include <alsa/asoundlib.h>
@@ -9,7 +9,7 @@
 
 #define MOUTH_SERVO_CHANNEL 3
 
-class AudioMouth {
+class Mouth {
 private:
     PCA9685* pwm;
     std::thread audioThread;
@@ -41,12 +41,12 @@ private:
     void moveServoBasedOnAmplitude(short* buffer, int size);
 
 public:
-    AudioMouth(PCA9685* pwmController);
-    ~AudioMouth();
+    Mouth(PCA9685* pwmController);
+    ~Mouth();
     int getServoPulse() { return prevServoPulse; }
 
     void start();
     void stop();
 };
 
-#endif // AUDIOMOUTH_H
+#endif // MOUTH_H
