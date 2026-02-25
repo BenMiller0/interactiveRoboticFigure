@@ -167,7 +167,6 @@ static void rubberBandEffect(short* buffer, int frames, double ampNorm) {
 }
 
 void AudioMouth::audioProcessingLoop() {
-    std::cerr << "Audio thread started" << std::endl;
 
     snd_pcm_t* captureHandle = nullptr;
     snd_pcm_t* playbackHandle1 = nullptr;
@@ -178,25 +177,16 @@ void AudioMouth::audioProcessingLoop() {
 
     // --- Capture ---
     err = snd_pcm_open(&captureHandle, DEVICE_INPUT, SND_PCM_STREAM_CAPTURE, 0);
-    std::cerr << "Capture: " << snd_strerror(err) << std::endl;
     if (err < 0) return;
     
 
     // --- Playback 1 ---
     err = snd_pcm_open(&playbackHandle1, DEVICE_OUTPUT1, SND_PCM_STREAM_PLAYBACK, 0);
-    std::cerr << "Playback1: " << snd_strerror(err) << std::endl;
     if (err < 0) { snd_pcm_close(captureHandle); return;}
 
     // --- Playback 2 ---
     err = snd_pcm_open(&playbackHandle2, DEVICE_OUTPUT2, SND_PCM_STREAM_PLAYBACK, 0);
-    std::cerr << "Playback2: " << snd_strerror(err) << std::endl;
-    if (err < 0) {
-        snd_pcm_close(captureHandle);
-        snd_pcm_close(playbackHandle1);
-        return;
-    }
-
-    std::cerr << "All devices opened, entering loop" << std::endl;
+    if (err < 0) { snd_pcm_close(captureHandle); snd_pcm_close(playbackHandle1); return; }
 
     snd_pcm_hw_params_alloca(&hwParams);
 
