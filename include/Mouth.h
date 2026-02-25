@@ -1,5 +1,4 @@
-#ifndef MOUTH_H
-#define MOUTH_H
+#pragma once
 
 #include "PCA9685.h"
 #include <alsa/asoundlib.h>
@@ -49,4 +48,3 @@ public:
     void stop();
 };
 
-#endif // MOUTH_H

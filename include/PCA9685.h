@@ -1,5 +1,4 @@
-#ifndef PCA9685_H
-#define PCA9685_H
+#pragma once
 
 #include <cstdint>
 
@@ -26,4 +25,3 @@ public:
     void setServoPulse(uint8_t channel, uint16_t pulse_us);
 };
 
-#endif // PCA9685_H

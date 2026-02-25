@@ -2,57 +2,37 @@
 #include "Mouth.h"
 #include "Wings.h"
 #include "TaroUI.h"
+#include "Neck.h"
 #include <unistd.h>
-#include <termios.h>
-#include <fcntl.h>
-#include <sys/time.h>
-#include <cmath>
-
-// ... (setNonBlockingInput and getCurrentTimeMs stay here, or move to a util if desired)
 
 int main() {
-    // Init PWM controller
     PCA9685 pwm;
 
-    // TODO: initialize neck
-    pwm.setServoPulse(2, 1500);
-
+    Neck neck(&pwm);
     Mouth mouth(&pwm);
     mouth.start();
-
     Wings wings(pwm);
     TaroUI ui;
     ui.init();
 
     char ch;
     bool running = true;
-    bool recentering = false;
 
-    double headCurrent = 1500.0;
-    double headTarget  = 1500.0;
-    const double HEAD_STEP   = 80.0;
-    const double HEAD_SMOOTH = 0.2;
-
-    ui.draw(static_cast<uint16_t>(headCurrent), mouth.getServoPulse(), wings);
+    ui.draw(neck.getServoPulse(), mouth.getServoPulse(), wings);
 
     while (running) {
         while (read(STDIN_FILENO, &ch, 1) > 0) {
             if      (ch == 'e' || ch == 'E') { wings.flapWings(); }
-            else if ((ch == 'a' || ch == 'A') && !recentering) { headTarget = std::max(headTarget - HEAD_STEP, 500.0); }
-            else if ((ch == 'd' || ch == 'D') && !recentering) { headTarget = std::min(headTarget + HEAD_STEP, 2500.0); }
-            else if  (ch == 'r' || ch == 'R') { recentering = true; headTarget = 1500.0; }
-            else if  (ch == 'q' || ch == 'Q') { running = false; }
+            else if (ch == 'a' || ch == 'A') { neck.turnLeft(); }
+            else if (ch == 'd' || ch == 'D') { neck.turnRight(); }
+            else if (ch == 'r' || ch == 'R') { neck.recenter(); }
+            else if (ch == 'q' || ch == 'Q') { running = false; }
         }
 
-        headCurrent += (headTarget - headCurrent) * HEAD_SMOOTH;
-        pwm.setServoPulse(2, static_cast<uint16_t>(headCurrent));
-        if (recentering && fabs(headCurrent - 1500.0) < 1.0) {
-            headCurrent = 1500.0;
-            recentering = false;
-        }
+        neck.update();
 
         if (ui.needsDraw()) {
-            ui.draw(static_cast<uint16_t>(headCurrent), mouth.getServoPulse(), wings);
+            ui.draw(neck.getServoPulse(), mouth.getServoPulse(), wings);
         }
 
         usleep(10000);
