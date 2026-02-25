@@ -11,7 +11,10 @@
 // ... (setNonBlockingInput and getCurrentTimeMs stay here, or move to a util if desired)
 
 int main() {
+    // Init PWM controller
     PCA9685 pwm;
+
+    // TODO: initialize neck
     pwm.setServoPulse(2, 1500);
 
     Mouth mouth(&pwm);
@@ -49,8 +52,8 @@ int main() {
         }
 
         if (ui.needsDraw()) {
-        ui.draw(static_cast<uint16_t>(headCurrent), mouth.getServoPulse(), wings);
-    }
+            ui.draw(static_cast<uint16_t>(headCurrent), mouth.getServoPulse(), wings);
+        }
 
         usleep(10000);
     }
