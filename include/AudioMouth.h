@@ -7,10 +7,11 @@
 #include <thread>
 #include <cstdint>
 
+#define MOUTH_SERVO_CHANNEL 3
+
 class AudioMouth {
 private:
     PCA9685* pwm;
-    uint8_t channel;
     std::thread audioThread;
     std::atomic<bool> running;
 
@@ -40,7 +41,7 @@ private:
     void moveServoBasedOnAmplitude(short* buffer, int size);
 
 public:
-    AudioMouth(PCA9685* pwmController, uint8_t servoChannel);
+    AudioMouth(PCA9685* pwmController);
     ~AudioMouth();
     int getServoPulse() { return prevServoPulse; }
 

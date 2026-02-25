@@ -19,12 +19,11 @@ T clamp(T value, T minVal, T maxVal) {
 // 1.15–1.35 is usable
 static constexpr double PITCH_FACTOR = 1.25;
 
-AudioMouth::AudioMouth(PCA9685* pwmController, uint8_t servoChannel)
+AudioMouth::AudioMouth(PCA9685* pwmController)
     : pwm(pwmController),
-      channel(servoChannel),
       running(false),
       prevServoPulse(SERVO_MIN_PULSE) {
-    pwm->setServoPulse(channel, SERVO_MIN_PULSE);
+    pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
 }
 
 AudioMouth::~AudioMouth() {
@@ -42,7 +41,7 @@ void AudioMouth::stop() {
     running = false;
     if (audioThread.joinable())
         audioThread.join();
-    pwm->setServoPulse(channel, SERVO_MIN_PULSE);
+    pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
 }
 
 void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
@@ -77,7 +76,7 @@ void AudioMouth::moveServoBasedOnAmplitude(short* buffer, int size) {
 
     if (std::fabs(smoothed - prevServoPulse) > SERVO_MOVEMENT_THRESHOLD) {
         prevServoPulse = static_cast<uint16_t>(smoothed);
-        pwm->setServoPulse(channel, prevServoPulse);
+        pwm->setServoPulse(MOUTH_SERVO_CHANNEL, prevServoPulse);
         usleep(SERVO_UPDATE_DELAY_US);
     }
 }
@@ -168,6 +167,8 @@ static void rubberBandEffect(short* buffer, int frames, double ampNorm) {
 }
 
 void AudioMouth::audioProcessingLoop() {
+    std::cerr << "Audio thread started" << std::endl;
+
     snd_pcm_t* captureHandle = nullptr;
     snd_pcm_t* playbackHandle1 = nullptr;
     snd_pcm_t* playbackHandle2 = nullptr;
@@ -177,22 +178,25 @@ void AudioMouth::audioProcessingLoop() {
 
     // --- Capture ---
     err = snd_pcm_open(&captureHandle, DEVICE_INPUT, SND_PCM_STREAM_CAPTURE, 0);
+    std::cerr << "Capture: " << snd_strerror(err) << std::endl;
     if (err < 0) return;
+    
 
     // --- Playback 1 ---
     err = snd_pcm_open(&playbackHandle1, DEVICE_OUTPUT1, SND_PCM_STREAM_PLAYBACK, 0);
-    if (err < 0) {
-        snd_pcm_close(captureHandle);
-        return;
-    }
+    std::cerr << "Playback1: " << snd_strerror(err) << std::endl;
+    if (err < 0) { snd_pcm_close(captureHandle); return;}
 
     // --- Playback 2 ---
     err = snd_pcm_open(&playbackHandle2, DEVICE_OUTPUT2, SND_PCM_STREAM_PLAYBACK, 0);
+    std::cerr << "Playback2: " << snd_strerror(err) << std::endl;
     if (err < 0) {
         snd_pcm_close(captureHandle);
         snd_pcm_close(playbackHandle1);
         return;
     }
+
+    std::cerr << "All devices opened, entering loop" << std::endl;
 
     snd_pcm_hw_params_alloca(&hwParams);
 

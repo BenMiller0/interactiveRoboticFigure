@@ -29,7 +29,7 @@ Taro concept art:
 * Smooth servo motion with speed limiting and dead zones
 * Manual keyboard controls for wings and head movement
 * Terminal-based UI for live status and debugging
-* Modular C++ design with reusable PCA9685 and AudioMouth components
+* Modular C++ design with reusable PCA9685 and Mouth components
 
 
 ## Project Structure
@@ -38,12 +38,12 @@ Taro concept art:
 assets/
   concept_art/        Concept art and diagrams
 include/              Public headers
-  AudioMouth.h        Audio-driven servo controller
+  Mouth.h        Audio-driven servo controller
   PCA9685.h           PWM driver interface
 legacy/               Older C implementations
 src/                  Main C++ source files
   main.cpp            Entry point and UI
-  AudioMouth.cpp      Audio processing thread
+  Mouth.cpp      Audio processing thread
   PCA9685.cpp         I2C PWM implementation
 test/              Experimental and test code
 Makefile              Build configuration
@@ -95,7 +95,7 @@ Run with appropriate permissions to access I2C and audio devices:
 sudo ./tea_animatronic
 ```
 
-Ensure that the audio device names in `AudioMouth.h` match system:
+Ensure that the audio device names in `Mouth.h` match system:
 
 ```cpp
 const char* DEVICE_INPUT  = "plughw:CARD=Device,DEV=0";
@@ -120,7 +120,7 @@ The terminal UI updates in real time to show servo positions and audio-driven mo
 
 ## Audio Mouth System
 
-The `AudioMouth` class runs in its own thread and performs:
+The `Mouth` class runs in its own thread and performs:
 
 * ALSA audio capture at 48 kHz
 * Average amplitude analysis per frame
