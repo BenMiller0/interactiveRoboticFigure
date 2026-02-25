@@ -19,10 +19,9 @@
 class TaroUI {
 public:
     TaroUI();
-    void init();
     void shutdown();
-    bool needsDraw();
-    void draw(uint16_t head, uint16_t mouth, const Wings& wings);
+    
+    void update(uint16_t head, uint16_t mouth, const Wings& wings);
 
 private:
     long long lastDraw;
@@ -30,4 +29,6 @@ private:
 
     std::string getBar(uint16_t pulse, uint16_t min, uint16_t max, int width = 22);
     std::string getMouthVisual(uint16_t pulse);
+    bool needsDraw();
+    void draw(uint16_t head, uint16_t mouth, const Wings& wings);
 };

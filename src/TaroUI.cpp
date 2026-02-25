@@ -31,9 +31,7 @@ static T clamp(T val, T minVal, T maxVal) {
     return (val < minVal) ? minVal : (val > maxVal) ? maxVal : val;
 }
 
-TaroUI::TaroUI() : lastDraw(0) {}
-
-void TaroUI::init() {
+TaroUI::TaroUI() : lastDraw(0) {
     setNonBlockingInput(true);
     std::cout << CLEAR << HIDE_CURSOR << std::flush;
 }
@@ -76,6 +74,11 @@ std::string TaroUI::getMouthVisual(uint16_t pulse) {
         case 5: return "╲ ◡   ◡ ╱";
         default: return "  ─────  ";
     }
+}
+
+void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings) {
+    if (!needsDraw()) return;
+    draw(head, mouth, wings);
 }
 
 void TaroUI::draw(uint16_t head, uint16_t mouth, const Wings& wings) {

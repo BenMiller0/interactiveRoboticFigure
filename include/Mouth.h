@@ -43,8 +43,6 @@ public:
     Mouth(PCA9685* pwmController);
     ~Mouth();
     int getServoPulse() { return prevServoPulse; }
-
-    void start();
     void stop();
 };
 

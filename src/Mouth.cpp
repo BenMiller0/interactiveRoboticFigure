@@ -24,17 +24,14 @@ Mouth::Mouth(PCA9685* pwmController)
       running(false),
       prevServoPulse(SERVO_MIN_PULSE) {
     pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
+    running = true;
+    audioThread = std::thread(&Mouth::audioProcessingLoop, this);
 }
 
 Mouth::~Mouth() {
     stop();
 }
 
-void Mouth::start() {
-    if (running) return;
-    running = true;
-    audioThread = std::thread(&Mouth::audioProcessingLoop, this);
-}
 
 void Mouth::stop() {
     if (!running) return;
