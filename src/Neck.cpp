@@ -10,6 +10,11 @@ Neck::Neck(PCA9685* pwmController)
     pwm->setServoPulse(NECK_CHANNEL, static_cast<uint16_t>(NECK_CENTER_PULSE));
 }
 
+void Neck::setTarget(double pulse) {
+    recentering = false;
+    headTarget = std::max(NECK_MIN_PULSE, std::min(NECK_MAX_PULSE, pulse));
+}
+
 void Neck::turnLeft() {
     if (recentering) return;
     headTarget = std::max(headTarget - NECK_STEP, NECK_MIN_PULSE);

@@ -1,48 +1,31 @@
 #pragma once
-
 #include "PCA9685.h"
-#include <alsa/asoundlib.h>
-#include <atomic>
-#include <thread>
+#include "Audio.h"
 #include <cstdint>
+#include <algorithm>
+#include <cmath>
 
 #define MOUTH_SERVO_CHANNEL 3
 
 class Mouth {
-private:
-    PCA9685* pwm;
-    std::thread audioThread;
-    std::atomic<bool> running;
-
-    /* ---------- Audio settings ---------- */
-    static constexpr int SAMPLE_RATE = 48000;
-    static constexpr int CHANNELS = 1;
-    static constexpr int FRAMES = 1024;
-
-    // Multiple output devices
-    const char* DEVICE_INPUT   = "plughw:CARD=Device,DEV=0";
-    const char* DEVICE_OUTPUT1 = "plughw:CARD=UACDemoV10,DEV=0";
-    const char* DEVICE_OUTPUT2 = "plughw:CARD=Device_1,DEV=0";
-
-    /* ---------- Servo settings ---------- */
-    static constexpr uint16_t SERVO_MIN_PULSE = 850;  // closed
-    static constexpr uint16_t SERVO_MAX_PULSE = 1300;  // open
-    static constexpr int SOUND_MIN_THRESHOLD = 50;
-    static constexpr double SMOOTHING_FACTOR = 0.8;
-    static constexpr int DEAD_ZONE = 300;
-    static constexpr double SERVO_MOVEMENT_THRESHOLD = 5.0;
-    static constexpr int SERVO_UPDATE_DELAY_US = 20000;
-    static constexpr double MAX_SERVO_SPEED = 50.0;
-
-    uint16_t prevServoPulse;
-
-    void audioProcessingLoop();
-    void moveServoBasedOnAmplitude(short* buffer, int size);
-
 public:
     Mouth(PCA9685* pwmController);
     ~Mouth();
-    int getServoPulse() { return prevServoPulse; }
     void stop();
-};
+    int getServoPulse() const { return prevServoPulse; }
 
+private:
+    PCA9685* pwm;
+    Audio audio;
+    uint16_t prevServoPulse;
+
+    static constexpr uint16_t SERVO_MIN_PULSE        = 850;
+    static constexpr uint16_t SERVO_MAX_PULSE        = 1300;
+    static constexpr int      SOUND_MIN_THRESHOLD    = 50;
+    static constexpr double   SMOOTHING_FACTOR       = 0.8;
+    static constexpr double   SERVO_MOVEMENT_THRESHOLD = 5.0;
+    static constexpr int      SERVO_UPDATE_DELAY_US  = 20000;
+    static constexpr double   MAX_SERVO_SPEED        = 50.0;
+
+    void onAudioFrame(short* buffer, int frames);
+};

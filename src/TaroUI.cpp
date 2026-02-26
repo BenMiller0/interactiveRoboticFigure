@@ -76,17 +76,12 @@ std::string TaroUI::getMouthVisual(uint16_t pulse) {
     }
 }
 
-void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings) {
-    if (!needsDraw()) return;
-    draw(head, mouth, wings);
-}
-
-void TaroUI::draw(uint16_t head, uint16_t mouth, const Wings& wings) {
+void TaroUI::drawBase(uint16_t head, uint16_t mouth, const Wings& wings) {
     buf.str("");
     buf << "\033[H";
 
     buf << BOLD CYAN "╔════════════════════════════╗\n";
-    buf <<           "║    🦅 Taro Controller 🦅     ║\n";
+    buf <<           "║      Taro Controller       ║\n";
     buf <<           "╚════════════════════════════╝\n" RESET;
 
     int pct = (int)((wings.msSinceLastFlap() * 100LL) / WING_FLAP_COOLDOWN_MS);
@@ -110,11 +105,34 @@ void TaroUI::draw(uint16_t head, uint16_t mouth, const Wings& wings) {
 
     buf << "\n " BOLD "HEAD" RESET "   " << getBar(head, 500, 2500) << "\n";
     buf << "        " DIM "←left" RESET "      " CYAN << head << "μs" RESET "      " DIM "right→" RESET "\n";
+}
+
+// Normal mode
+void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings) {
+    if (!needsDraw()) return;
+    drawBase(head, mouth, wings);
 
     buf << "\n " YELLOW "E" RESET "·Flap  "
         << YELLOW "A" RESET "/" YELLOW "D" RESET "·Turn  "
         << YELLOW "R" RESET "·Recenter  "
-        << YELLOW "Q" RESET "·Quit\n";
+        << YELLOW "X" RESET "·Auto Mode  "
+        << YELLOW "Q" RESET "·Quit   \n";
+
+    std::cout << buf.str() << std::flush;
+}
+
+// Auto mode
+void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings, int activityLevel) {
+    if (!needsDraw()) return;
+    drawBase(head, mouth, wings);
+
+    buf << "\n " YELLOW "X" RESET "·Exit Auto  "
+        << YELLOW "A" RESET "·Less  "
+        << YELLOW "D" RESET "·More  "
+        << "  Activity: ";
+    for (int i = 1; i <= 10; i++)
+        buf << (i <= activityLevel ? GREEN "█" RESET : DIM "░" RESET);
+    buf << " " CYAN << activityLevel << "/10" RESET "   \n";
 
     std::cout << buf.str() << std::flush;
 }

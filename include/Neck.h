@@ -18,6 +18,7 @@ private:
 public:
     Neck(PCA9685* pwmController);
 
+    void setTarget(double pulse);
     void turnLeft();
     void turnRight();
     void recenter();
