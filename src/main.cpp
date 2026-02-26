@@ -1,8 +1,8 @@
 #include "PCA9685.h"
-#include "Mouth.h"
-#include "Wings.h"
+#include "actuation/Mouth.h"
+#include "actuation/Wings.h"
+#include "actuation/Neck.h"
 #include "TaroUI.h"
-#include "Neck.h"
 #include "RandomController.h"
 #include <unistd.h>
 

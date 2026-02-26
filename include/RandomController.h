@@ -1,6 +1,6 @@
 #pragma once
-#include "Neck.h"
-#include "Wings.h"
+#include "../src/actuation/Neck.h"
+#include "../src/actuation/Wings.h"
 #include <cstdlib>
 #include <sys/time.h>
 
