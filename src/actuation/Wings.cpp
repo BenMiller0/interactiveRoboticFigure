@@ -1,5 +1,5 @@
 #include "Wings.h"
-#include "PCA9685.h"
+#include "../i2c/PCA9685.h"
 #include <unistd.h>
 
 Wings::Wings(PCA9685& pwmController) : pwm(pwmController) {

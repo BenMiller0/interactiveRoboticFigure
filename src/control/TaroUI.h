@@ -2,7 +2,7 @@
 #include <sstream>
 #include <string>
 #include <cstdint>
-#include "../src/actuation/Wings.h"
+#include "../actuation/Wings.h"
 
 #define CLEAR       "\033[2J\033[H"
 #define HIDE_CURSOR "\033[?25l"

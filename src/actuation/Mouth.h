@@ -1,6 +1,6 @@
 #pragma once
-#include "PCA9685.h"
-#include "Audio.h"
+#include "../i2c/PCA9685.h"
+#include "../audio/Audio.h"
 #include <cstdint>
 #include <algorithm>
 #include <cmath>

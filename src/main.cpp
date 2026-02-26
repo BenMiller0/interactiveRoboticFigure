@@ -1,9 +1,9 @@
-#include "PCA9685.h"
+#include "i2c/PCA9685.h"
 #include "actuation/Mouth.h"
 #include "actuation/Wings.h"
 #include "actuation/Neck.h"
-#include "TaroUI.h"
-#include "RandomController.h"
+#include "control/TaroUI.h"
+#include "control/RandomController.h"
 #include <unistd.h>
 
 int main() {

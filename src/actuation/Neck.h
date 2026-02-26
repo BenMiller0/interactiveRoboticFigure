@@ -1,5 +1,5 @@
 #pragma once
-#include "PCA9685.h"
+#include "../i2c/PCA9685.h"
 
 #define NECK_CHANNEL 2
 #define NECK_CENTER_PULSE 1500.0
