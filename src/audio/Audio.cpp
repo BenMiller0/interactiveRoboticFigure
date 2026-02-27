@@ -48,6 +48,23 @@ static void rubberBandEffect(short* buffer, int frames, double ampNorm) {
     }
 }
 
+void Audio::pause() {
+    if (!running) return;
+    running = false;
+    if (audioThread.joinable())
+        audioThread.join();
+}
+
+void Audio::resume() {
+    if (running) return;
+    running = true;
+    audioThread = std::thread(&Audio::loop, this);
+}
+
+bool Audio::isPaused() const {
+    return !running;
+}
+
 Audio::Audio(FrameCallback callback)
     : running(true), frameCallback(callback) {
     audioThread = std::thread(&Audio::loop, this);

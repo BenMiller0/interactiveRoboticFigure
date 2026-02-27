@@ -1,5 +1,6 @@
-#include "Mouth.h"
+#include "../actuation/Mouth.h"
 #include <cmath>
+#include <algorithm>
 #include <unistd.h>
 
 template <typename T>
@@ -19,6 +20,21 @@ void Mouth::stop() {
     pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
 }
 
+void Mouth::pause() {
+    audio.pause();
+    pwm->setServoPulse(MOUTH_SERVO_CHANNEL, SERVO_MIN_PULSE);
+}
+
+void Mouth::resume() {
+    audio.resume();
+}
+
+void Mouth::setServoPulse(uint16_t pulse) {
+    pulse = clamp(pulse, SERVO_MIN_PULSE, SERVO_MAX_PULSE);
+    prevServoPulse = pulse;
+    pwm->setServoPulse(MOUTH_SERVO_CHANNEL, pulse);
+}
+
 void Mouth::onAudioFrame(short* buffer, int size) {
     double sum = 0.0;
     for (int i = 0; i < size; i++) sum += std::abs(buffer[i]);
@@ -30,8 +46,10 @@ void Mouth::onAudioFrame(short* buffer, int size) {
         SERVO_MIN_PULSE + normalized * (SERVO_MAX_PULSE - SERVO_MIN_PULSE),
         SERVO_MIN_PULSE, SERVO_MAX_PULSE);
 
-    double delta    = clamp(static_cast<double>(targetPulse - prevServoPulse), -MAX_SERVO_SPEED, MAX_SERVO_SPEED);
-    double smoothed = clamp(prevServoPulse + delta * SMOOTHING_FACTOR, (double)SERVO_MIN_PULSE, (double)SERVO_MAX_PULSE);
+    double delta    = clamp(static_cast<double>(targetPulse - prevServoPulse),
+                            -MAX_SERVO_SPEED, MAX_SERVO_SPEED);
+    double smoothed = clamp(prevServoPulse + delta * SMOOTHING_FACTOR,
+                            (double)SERVO_MIN_PULSE, (double)SERVO_MAX_PULSE);
 
     if (std::fabs(smoothed - prevServoPulse) > SERVO_MOVEMENT_THRESHOLD) {
         prevServoPulse = static_cast<uint16_t>(smoothed);

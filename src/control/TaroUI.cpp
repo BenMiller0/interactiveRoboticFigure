@@ -1,4 +1,4 @@
-#include "TaroUI.h"
+#include "../control/TaroUI.h"
 #include <iostream>
 #include <algorithm>
 #include <termios.h>
@@ -76,14 +76,26 @@ std::string TaroUI::getMouthVisual(uint16_t pulse) {
     }
 }
 
-void TaroUI::drawBase(uint16_t head, uint16_t mouth, const Wings& wings) {
+static std::string getAIStateLabel(AIState state) {
+    switch (state) {
+        case AIState::IDLE:        return DIM "○ AI Idle   " RESET;
+        case AIState::READY:       return GREEN "● AI Ready  " RESET;
+        case AIState::LISTENING:   return CYAN "◉ Listening " RESET;
+        case AIState::PROCESSING:  return YELLOW "◌ Thinking  " RESET;
+        case AIState::SPEAKING:    return MAGENTA "◈ Speaking  " RESET;
+        default:                   return DIM "○ AI Idle   " RESET;
+    }
+}
+
+void TaroUI::drawBase(uint16_t head, uint16_t mouth, const Wings& wings, AIState ai) {
     buf.str("");
     buf << "\033[H";
 
     buf << BOLD CYAN "╔════════════════════════════╗\n";
-    buf <<           "║      Taro Controller       ║\n";
+    buf <<           "║    🦅 Taro Controller 🦅     ║\n";
     buf <<           "╚════════════════════════════╝\n" RESET;
 
+    // Wings cooldown
     int pct = (int)((wings.msSinceLastFlap() * 100LL) / WING_FLAP_COOLDOWN_MS);
     pct = std::min(pct, 100);
     pct = std::max(pct, 0);
@@ -100,39 +112,51 @@ void TaroUI::drawBase(uint16_t head, uint16_t mouth, const Wings& wings) {
     }
     buf << "             \n";
 
+    // Mouth
     buf << "\n " BOLD "MOUTH" RESET "  " MAGENTA << getMouthVisual(mouth) << RESET;
     buf << "  " << mouth << "μs\n";
 
-    buf << "\n " BOLD "HEAD" RESET "   " << getBar(head, 500, 2500) << "\n";
+    // Head
+    buf << "\n " BOLD "HEAD " RESET "  " << getBar(head, 500, 2500) << "\n";
     buf << "        " DIM "←left" RESET "      " CYAN << head << "μs" RESET "      " DIM "right→" RESET "\n";
+
+    // AI state
+    buf << "\n " BOLD "AI   " RESET "  " << getAIStateLabel(ai) << "\n";
 }
 
-// Normal mode
-void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings) {
-    if (!needsDraw()) return;
-    drawBase(head, mouth, wings);
-
+void TaroUI::drawControls() {
     buf << "\n " YELLOW "E" RESET "·Flap  "
         << YELLOW "A" RESET "/" YELLOW "D" RESET "·Turn  "
         << YELLOW "R" RESET "·Recenter  "
-        << YELLOW "X" RESET "·Auto Mode  "
+        << YELLOW "I" RESET "·Listen  "
+        << YELLOW "O" RESET "·AutoMode  "
+        << YELLOW "X" RESET "·Random  "
         << YELLOW "Q" RESET "·Quit   \n";
-
-    std::cout << buf.str() << std::flush;
 }
 
-// Auto mode
-void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings, int activityLevel) {
-    if (!needsDraw()) return;
-    drawBase(head, mouth, wings);
-
-    buf << "\n " YELLOW "X" RESET "·Exit Auto  "
+void TaroUI::drawRandomControls(int activityLevel) {
+    buf << "\n " YELLOW "O" RESET "·Exit Auto  "
         << YELLOW "A" RESET "·Less  "
         << YELLOW "D" RESET "·More  "
+        << YELLOW "I" RESET "·Listen  "
         << "  Activity: ";
     for (int i = 1; i <= 10; i++)
         buf << (i <= activityLevel ? GREEN "█" RESET : DIM "░" RESET);
     buf << " " CYAN << activityLevel << "/10" RESET "   \n";
+}
 
+// Normal mode
+void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings, AIState ai) {
+    if (!needsDraw()) return;
+    drawBase(head, mouth, wings, ai);
+    drawControls();
+    std::cout << buf.str() << std::flush;
+}
+
+// Random mode
+void TaroUI::update(uint16_t head, uint16_t mouth, const Wings& wings, int activityLevel, AIState ai) {
+    if (!needsDraw()) return;
+    drawBase(head, mouth, wings, ai);
+    drawRandomControls(activityLevel);
     std::cout << buf.str() << std::flush;
 }

@@ -6,12 +6,14 @@
 
 class Audio {
 public:
-    // Callback called with each captured buffer: (buffer, frames)
     using FrameCallback = std::function<void(short*, int)>;
 
     Audio(FrameCallback callback);
     ~Audio();
     void stop();
+    void pause();
+    void resume();
+    bool isPaused() const;
 
 private:
     static constexpr int SAMPLE_RATE = 48000;

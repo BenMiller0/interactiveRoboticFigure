@@ -2,8 +2,6 @@
 #include "../i2c/PCA9685.h"
 #include "../audio/Audio.h"
 #include <cstdint>
-#include <algorithm>
-#include <cmath>
 
 #define MOUTH_SERVO_CHANNEL 3
 
@@ -12,6 +10,9 @@ public:
     Mouth(PCA9685* pwmController);
     ~Mouth();
     void stop();
+    void pause();
+    void resume();
+    void setServoPulse(uint16_t pulse);
     int getServoPulse() const { return prevServoPulse; }
 
 private:
