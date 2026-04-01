@@ -38,28 +38,34 @@ Taro concept art:
 
 ```
 assets/
-  concept_art/          Concept art and diagrams
-  promotional_material/ Photos of Taro in the wild
-  legacy/               Older C implementations
-src/                   Main C++ source files
-  main.cpp             Entry point and main control loop
-  actuation/           Servo control components
-    Mouth.h/.cpp       Audio-driven mouth servo controller
-    Neck.h/.cpp        Neck servo controller
-    Wings.h/.cpp       Wing servo controller with cooldown
-  ai/                  AI integration components
-    AIVoice.h/.cpp     AI voice conversation system
-    taro_ai.py         Python AI backend
-  audio/               Audio processing components
-    Audio.h/.cpp       Audio capture and playback management
-  control/             Control system components
-    TaroUI.h/.cpp      Terminal UI and input handling
-    RandomController.h/.cpp  Autonomous movement controller
-  i2c/                 Hardware interface components
-    PCA9685.h/.cpp     I2C PWM servo driver
-test/                  Experimental and test code
-Makefile               Build configuration
-README.md              Project documentation
+  concept_art/                    Concept art and diagrams
+  promotional_material/           Photos of Taro in the wild
+  legacy/                         Older C and Arduino implementations
+    README.md                     Legacy system documentation
+    body.ino                      Arduino body control sketch
+    taromouth.c                   C-based mouth control
+    Makefile                      Build configuration for legacy C code
+docs/                             Project documentation
+  ARCHITECTURE.md                 Detailed system architecture
+src/                              Main C++ source files
+  main.cpp                        Entry point and main control loop
+  actuation/                      Servo control components
+    Mouth.h/.cpp                  Audio-driven mouth servo controller
+    Neck.h/.cpp                   Neck servo controller
+    Wings.h/.cpp                  Wing servo controller with cooldown
+  ai/                             AI integration components
+    AIVoice.h/.cpp                AI voice conversation system
+    taro_ai.py                    Python AI backend
+  audio/                          Audio processing components
+    Audio.h/.cpp                  Audio capture and playback management
+  control/                        Control system components
+    TaroUI.h/.cpp                 Terminal UI and input handling
+    RandomController.h/.cpp       Autonomous movement controller
+  i2c/                            Hardware interface components
+    PCA9685.h/.cpp                I2C PWM servo driver
+test/                             Experimental and test code
+Makefile                          Build configuration
+README.md                         Project documentation
 ```
 
 ## Hardware Specs
