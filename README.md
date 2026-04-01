@@ -40,13 +40,14 @@ Taro concept art:
 assets/
   concept_art/                    Concept art and diagrams
   promotional_material/           Photos of Taro in the wild
-  legacy/                         Older C and Arduino implementations
+  legacy/                         Older C + Arduino platform implementation
     README.md                     Legacy system documentation
     body.ino                      Arduino body control sketch
     taromouth.c                   C-based mouth control
     Makefile                      Build configuration for legacy C code
 docs/                             Project documentation
   ARCHITECTURE.md                 Detailed system architecture
+  program_cycle.png               How the audio -> mouth pipeline visualization
 src/                              Main C++ source files
   main.cpp                        Entry point and main control loop
   actuation/                      Servo control components
@@ -145,7 +146,9 @@ While running, the program captures keyboard input in the terminal:
 
 The terminal UI updates in real time showing wing cooldown, mouth opening, head position, AI status, and random controller activity.
 
-## src/actuation/ - Servo Control Components
+## High-level Architecture 
+The following is the high-levl architecture of the codebase, for the in-depth architecture see the [architecture document](docs\ARCHITECTURE.md)
+# src/actuation/ - Servo Control Components
 
 Contains all servo motor control classes:
 

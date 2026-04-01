@@ -12,10 +12,10 @@ AIVoice
 |
 Control Layer
 TaroUI / RandomController
-|                                      |
+|                             |
 Actuation Layer           Audio Layer
-Neck / Wings / Mouth    Audio 
-|                                      |
+Neck / Wings / Mouth      Audio 
+|                             |
 Hardware Abstraction Layer
 PCA9685
 |
